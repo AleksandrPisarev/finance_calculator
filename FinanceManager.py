@@ -1,4 +1,8 @@
 from unittest import case
+import csv
+
+from unicodedata import category
+
 class FinanceManager:
     book = []
     def __init__(self, balance):
@@ -15,16 +19,40 @@ class FinanceManager:
     def balance(self, value):
         self.__balance = value
 
+    # def invalid_value(self, input_func):
+    #     def output_func(*args):
+    #         type = args[1]
+    #         while True:
+    #             if type == "доход" or type == "расход":
+    #                 break
+    #             else:
+    #                 type = input("Введен несоответствующий тип. Введите 'доход' или 'расход': ")
+    #         amount = args[2]
+    #         while True:
+    #             try:
+    #                 amount = int(amount)
+    #             except ValueError:
+    #                 amount = input("Введено не число. Введите число: ")
+    #             else:
+    #                 if amount <= 0:
+    #                     amount = input("Введено не допустимое значение. Введите положительное число: ")
+    #                 else:
+    #                     break
+    #         category = args[3]
+    #         self.input_func(type, amount, category)
+    #     return output_func
+    #
+    # @invalid_value
     def add_transaction(self,type, amount, category):
         if type == "доход":
             self.__balance += int(amount)
-            self.book.append({"type": type,"amout": amount,"category": category})
+            self.book.append([type, amount, category])
         elif type == "расход":
             if self.__balance < int(amount):
                 print("Затраченная сумма больше баланса. Введите другую сумму")
             else:
                 self.__balance -= int(amount)
-                self.book.append({"type": type,"amout": amount,"category": category})
+                self.book.append([type, amount, category])
 
     def get_transactions(self):
         return self.book
@@ -33,22 +61,25 @@ class FinanceManager:
       return self.__balance
 
     def save_data(self):
-        with open("transactions.txt", "w", encoding="UTF-8") as file:
-            file.write(f"balance:{self.__balance}\n")
-            for row in self.book:
-                file.write(f"{row['type']},{row['amout']},{row['category']}\n")
+        with open("transactions.csv", "w", newline="", encoding="UTF-8") as file:
+            _list = ["balance", self.__balance]
+            writer = csv.writer(file)
+            writer.writerow(_list)
+            writer.writerows(self.book)
 
     def load_data(self):
-        with open("transactions.txt", "r", encoding="UTF-8") as file:
-            contents = file.readlines()
-            sum = contents[0].split(":")
-            self.__balance = int(sum[1])
-            for i in range (1,len(contents)):
-                temp = contents[i].split(",")
-                self.book.append({"type": temp[0],"amout": int(temp[1]),"category": temp[2]})
+        try:
+            with open("transactions.csv", "r", encoding="UTF-8") as file:
+                reader = csv.reader(file)
+                for row in reader:
+                    self.book.append(row)
+                self.__balance = int(self.book[0][1])
+                self.book.pop(0)
+            print("Данные из файла загружены.")
+        except FileNotFoundError:
+            print("Данные в файле отсутствуют.")
 
     def run(self):
-        # self.load_data()
         try:
             choice = int(input(
             '''
@@ -71,7 +102,7 @@ class FinanceManager:
             case 2:
                 print(f"balance: {self.get_balance()}")
                 for row in self.get_transactions():
-                    print(f"{row['type']},{row['amout']},{row['category']}")
+                    print(row[0], row[1], row[2])
             case 3:
                 self.save_data()
                 exit()
