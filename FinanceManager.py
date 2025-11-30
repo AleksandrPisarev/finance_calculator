@@ -3,6 +3,31 @@ import csv
 
 from unicodedata import category
 
+
+def invalid_value(func):
+    def output_func(*args):
+        this = args[0]
+        type = args[1]
+        while True:
+            if type == "доход" or type == "расход":
+                break
+            else:
+                type = input("Введен несоответствующий тип. Введите 'доход' или 'расход': ")
+        amount = args[2]
+        while True:
+            try:
+                amount = int(amount)
+            except ValueError:
+                amount = input("Введено не число. Введите число: ")
+            else:
+                if amount <= 0:
+                    amount = input("Введено не допустимое значение. Введите положительное число: ")
+                else:
+                    break
+        category = args[3]
+        func(this, type, amount, category)
+    return output_func
+
 class FinanceManager:
     book = []
     def __init__(self, balance):
@@ -19,30 +44,7 @@ class FinanceManager:
     def balance(self, value):
         self.__balance = value
 
-    # def invalid_value(self, input_func):
-    #     def output_func(*args):
-    #         type = args[1]
-    #         while True:
-    #             if type == "доход" or type == "расход":
-    #                 break
-    #             else:
-    #                 type = input("Введен несоответствующий тип. Введите 'доход' или 'расход': ")
-    #         amount = args[2]
-    #         while True:
-    #             try:
-    #                 amount = int(amount)
-    #             except ValueError:
-    #                 amount = input("Введено не число. Введите число: ")
-    #             else:
-    #                 if amount <= 0:
-    #                     amount = input("Введено не допустимое значение. Введите положительное число: ")
-    #                 else:
-    #                     break
-    #         category = args[3]
-    #         self.input_func(type, amount, category)
-    #     return output_func
-    #
-    # @invalid_value
+    @invalid_value
     def add_transaction(self,type, amount, category):
         if type == "доход":
             self.__balance += int(amount)
